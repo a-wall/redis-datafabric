@@ -11,7 +11,7 @@ namespace Refab.Test
     /// <summary>
     /// A running instance of redis is required.
     /// </summary>
-    [TestFixture]
+    [TestFixture, Ignore("Integration tests")]
     public class IntegrationTests
     {
         private ConnectionMultiplexer _redis;
