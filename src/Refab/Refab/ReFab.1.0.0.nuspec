@@ -13,6 +13,6 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="bin\Debug\Refab.dll" target="lib\Refab.dll" />
+        <file src="bin\Release\Refab.dll" target="lib\Refab.dll" />
     </files>
 </package>
