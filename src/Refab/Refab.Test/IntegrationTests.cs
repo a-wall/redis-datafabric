@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -20,7 +21,7 @@ namespace Refab.Test
         [SetUp]
         public void SetUp()
         {
-            _redis = ConnectionMultiplexer.Connect("localhost");
+            _redis = ConnectionMultiplexer.Connect("localhost:6379,localhost:6380");
         }
 
         [Test]
@@ -28,6 +29,32 @@ namespace Refab.Test
         {
             var db = _redis.GetDatabase();
             db.StringSet("my-test-key", 1);
+        }
+
+        [Test]
+        public void ReadEndPoints()
+        {
+            var svrs = _redis.GetEndPoints();
+            var db = _redis.GetDatabase();
+            var info = svrs.Select(ep => _redis.GetServer(ep)).Where(s => s.IsConnected && !s.IsSlave).ToList();
+            var inf2o = svrs.Select(ep => _redis.GetServer(ep)).ToList();
+            var end = db.IdentifyEndpoint(key: "mykey");
+            var info3 = _redis.GetServer(end);
+        }
+
+        [Test]
+        public void SimpleKeyMatchTest()
+        {
+            var keys = Enumerable.Range(1, 100).Select(i => "my-test-key-" + i).ToList();
+            var db = _redis.GetDatabase();
+            keys.ForEach(k =>
+            {
+                db.StringSet(k, _random.Next(100));
+            });
+            
+            var svr = _redis.GetServer("localhost", 6379);
+            var matching = svr.Keys(pattern: "my-test-key-*").ToList();
+            db.KeyDelete(matching.ToArray());
         }
 
         [Test]
@@ -125,7 +152,37 @@ namespace Refab.Test
 
             evt.Wait(TimeSpan.FromSeconds(5));
             d.Dispose();
-            Assert.AreEqual(ct, 1);
+            Assert.AreEqual(1, ct);
+        }
+
+        [Test]
+        public void OneHundredSubscribersTest()
+        {
+            var d = new CompositeDisposable();
+            var evt = new ManualResetEventSlim();
+            var ct = 100;
+
+            // ensure test key is missing
+            var db = _redis.GetDatabase();
+            db.KeyDelete("my-scale-test-key");
+
+            Enumerable.Range(1, ct).ToList().ForEach(i =>
+            {
+                var observable = _redis.GetObservable("my-scale-test-key");
+                d.Add(observable.Subscribe(v =>
+                {
+                    Debug.WriteLine("subscriber {0} received: {1}",i, v);
+                    --ct;
+                    if (ct <= 0) evt.Set();
+                }));
+            });
+
+            var observer = _redis.GetObserver("my-scale-test-key");
+            observer.OnNext("value is " + _random.Next(100));
+
+            evt.Wait(TimeSpan.FromSeconds(15));
+            d.Dispose();
+            Assert.AreEqual(0, ct);
         }
     }
 }
