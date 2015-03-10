@@ -16,12 +16,14 @@ namespace Refab.Test
     public class IntegrationTests
     {
         private ConnectionMultiplexer _redis;
+        private DataFabric _dataFabric;
         private Random _random = new Random();
 
         [SetUp]
         public void SetUp()
         {
             _redis = ConnectionMultiplexer.Connect("localhost:6379,localhost:6380");
+            _dataFabric=new DataFabric(_redis, new JsonAdapterProvider());
         }
 
         [Test]
@@ -32,29 +34,21 @@ namespace Refab.Test
         }
 
         [Test]
-        public void ReadEndPoints()
-        {
-            var svrs = _redis.GetEndPoints();
-            var db = _redis.GetDatabase();
-            var info = svrs.Select(ep => _redis.GetServer(ep)).Where(s => s.IsConnected && !s.IsSlave).ToList();
-            var inf2o = svrs.Select(ep => _redis.GetServer(ep)).ToList();
-            var end = db.IdentifyEndpoint(key: "mykey");
-            var info3 = _redis.GetServer(end);
-        }
-
-        [Test]
         public void SimpleKeyMatchTest()
         {
-            var keys = Enumerable.Range(1, 100).Select(i => "my-test-key-" + i).ToList();
+            var keys = Enumerable.Range(1, 10).Select(i => "my-test-key-" + i).ToList();
             var db = _redis.GetDatabase();
             keys.ForEach(k =>
             {
                 db.StringSet(k, _random.Next(100));
             });
-            
-            var svr = _redis.GetServer("localhost", 6379);
-            var matching = svr.Keys(pattern: "my-test-key-*").ToList();
-            db.KeyDelete(matching.ToArray());
+            var matching = _dataFabric.Keys("my-test-key-*");
+            db.KeyDelete(matching.Select(k =>
+            {
+                var rk = new RedisKey();
+                rk = k;
+                return rk;
+            }).ToArray());
         }
 
         [Test]

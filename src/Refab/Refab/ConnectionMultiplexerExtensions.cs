@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -34,6 +37,13 @@ namespace Refab
             }).Where(v => v.HasValue);
         }
 
+        public static IObservable<T> GetObservable<T>(this ConnectionMultiplexer connectionMultiplexer, IAdapterProvider<RedisValue> adapterProvider, string key,
+            bool includeInitialValue = true)
+        {
+            var adapter = adapterProvider.Provide<T>();
+            return connectionMultiplexer.GetObservable(key, includeInitialValue).Select(v => adapter.Adapt(v));
+        }
+
         public static IObserver<RedisValue> GetObserver(this ConnectionMultiplexer connectionMultiplexer, string key)
         {
             var database = connectionMultiplexer.GetDatabase();
@@ -41,6 +51,20 @@ namespace Refab
             {
                 database.StringSet(key, s);
             });
+        }
+
+        public static IObserver<T> GetObserver<T>(this ConnectionMultiplexer connectionMultiplexer, IAdapterProvider<RedisValue> adapterProvider, string key)
+        {
+            var adapter = adapterProvider.Provide<T>();
+            var observer = connectionMultiplexer.GetObserver(key);
+            return Observer.Create<T>(t => observer.OnNext(adapter.Adapt(t)));
+        }
+
+        public static IEnumerable<string> GetKeys(this ConnectionMultiplexer connectionMultiplexer, string pattern)
+        {
+            var svrs = connectionMultiplexer.GetEndPoints();
+            var keys = svrs.Select(ep => connectionMultiplexer.GetServer(ep)).Where(s => s.IsConnected && !s.IsSlave).SelectMany(s => s.Keys(pattern: pattern)).Select(k => k.ToString()).ToList();
+            return keys;
         }
     }
 }
