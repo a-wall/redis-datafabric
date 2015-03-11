@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package >
     <metadata>
-        <id>ReFab</id>
-        <version>1.0.31-alpha</version>
+        <id>Refab</id>
+        <version>$version$-alpha</version>
         <title>Redis Data-Fabric</title>
         <authors>a-wall</authors>
         <projectUrl>http://github.com/a-wall/redis-datafabric</projectUrl>
@@ -11,11 +11,6 @@
         <releaseNotes></releaseNotes>
         <copyright>Copyright 2015</copyright>
         <tags>Redis</tags>
-        <dependencies>
-            <dependency id="StackExchange.Redis" version="1.0.394" />
-            <dependency id="Newtonsoft.Json" version="7.0.1-beta1" />
-            <dependency id="Rx-Main" version="2.2.5" />
-        </dependencies>
     </metadata>
     <files>
         <file src="bin\Release\Refab.dll" target="lib\Refab.dll" />
