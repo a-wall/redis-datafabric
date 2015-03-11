@@ -2,7 +2,7 @@
 <package >
     <metadata>
         <id>Refab</id>
-        <version>$version$</version>
+        <version>$version$-alpha</version>
         <title>Redis Data-Fabric</title>
         <authors>a-wall</authors>
         <projectUrl>http://github.com/a-wall/redis-datafabric</projectUrl>
