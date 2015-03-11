@@ -5,7 +5,7 @@
         <version>$version$</version>
         <title>Redis Data-Fabric</title>
         <authors>a-wall</authors>
-        <projectUrl>http://github.com/a-wall/redis-datafabric</projectUrl>c
+        <projectUrl>http://github.com/a-wall/redis-datafabric</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>$description$</description>
         <releaseNotes></releaseNotes>
