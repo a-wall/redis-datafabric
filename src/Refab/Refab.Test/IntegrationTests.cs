@@ -16,14 +16,12 @@ namespace Refab.Test
     public class IntegrationTests
     {
         private ConnectionMultiplexer _redis;
-        private DataFabric _dataFabric;
         private Random _random = new Random();
 
         [SetUp]
         public void SetUp()
         {
             _redis = ConnectionMultiplexer.Connect("localhost:6379,localhost:6380");
-            _dataFabric=new DataFabric(_redis, new JsonAdapterProvider());
         }
 
         [Test]
@@ -34,21 +32,10 @@ namespace Refab.Test
         }
 
         [Test]
-        public void SimpleKeyMatchTest()
+        public void SimpleWriteAndExpireTest()
         {
-            var keys = Enumerable.Range(1, 10).Select(i => "my-test-key-" + i).ToList();
             var db = _redis.GetDatabase();
-            keys.ForEach(k =>
-            {
-                db.StringSet(k, _random.Next(100));
-            });
-            var matching = _dataFabric.Keys("my-test-key-*");
-            db.KeyDelete(matching.Select(k =>
-            {
-                var rk = new RedisKey();
-                rk = k;
-                return rk;
-            }).ToArray());
+            db.StringSet("my-test-key", 2, TimeSpan.FromSeconds(5));
         }
 
         [Test]
