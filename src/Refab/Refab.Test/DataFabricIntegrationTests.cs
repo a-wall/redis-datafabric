@@ -47,5 +47,17 @@ namespace Refab.Test
             var s = o.FirstOrDefault();
             StringAssert.AreEqualIgnoringCase(v, s);
         }
+
+        [Test]
+        public void ShouldGetMissingString()
+        {
+            var k = "test-datafabric-doesnotexist";
+
+            var fabric = new DataFabric(_redis, _keyProvider, _valueProvider);
+
+            var o = fabric.Observe<string, string>(k);
+            var s = o.FirstOrDefault();
+            StringAssert.AreEqualIgnoringCase(string.Empty, s);
+        }
     }
 }

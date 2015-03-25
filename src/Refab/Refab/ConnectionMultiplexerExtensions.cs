@@ -34,7 +34,7 @@ namespace Refab
                 {
                     subscriber.Unsubscribe(redisChannel);
                 });
-            }).Where(v => v.HasValue);
+            });
         }
 
         public static IObserver<RedisValue> GetObserver(this ConnectionMultiplexer connectionMultiplexer, RedisKey key, TimeSpan? expiry = null)

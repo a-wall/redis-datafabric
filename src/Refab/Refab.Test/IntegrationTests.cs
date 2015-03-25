@@ -32,6 +32,14 @@ namespace Refab.Test
         }
 
         [Test]
+        public void GetMissingKeyTest()
+        {
+            var db = _redis.GetDatabase();
+            var v = db.StringGet("my-test-key-that-does-not-exist");
+            Assert.IsFalse(v.HasValue);
+        }
+
+        [Test]
         public void SimpleWriteAndExpireTest()
         {
             var db = _redis.GetDatabase();
