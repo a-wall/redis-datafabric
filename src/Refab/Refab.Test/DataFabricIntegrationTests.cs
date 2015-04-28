@@ -9,7 +9,7 @@ using StackExchange.Redis;
 
 namespace Refab.Test
 {
-    [TestFixture, Ignore("Integration test of DataFabric requires running local Redis instance")]
+    [TestFixture, Explicit("Integration test of DataFabric requires running local Redis instance")]
     public sealed class DataFabricIntegrationTests
     {
         private ConnectionMultiplexer _redis;
@@ -26,8 +26,8 @@ namespace Refab.Test
             _keyProvider.Stub(m => m.Provide<string>()).Return(keyAdapter);
             _valueProvider = MockRepository.Mock<IAdapterProvider<RedisValue>>();
             var valueAdapter = MockRepository.Mock<IAdapter<string, RedisValue>>();
-            valueAdapter.Stub(m => m.Adapt(string.Empty)).IgnoreArguments().Repeat.Any().DoInstead((Func<string, RedisValue>)(s => s));
-            valueAdapter.Stub(m => m.Adapt((RedisValue)string.Empty)).IgnoreArguments().Repeat.Any().DoInstead((Func<RedisValue, string>)(s => s));
+			valueAdapter.Stub(m => m.Adapt(Arg<string>.Is.Anything)).IgnoreArguments().Repeat.Any().DoInstead((Func<string, RedisValue>)(s => s));
+			valueAdapter.Stub(m => m.Adapt(Arg<RedisValue>.Is.Anything)).IgnoreArguments().Repeat.Any().DoInstead((Func<RedisValue, string>)(s => s));
             _valueProvider.Stub(m => m.Provide<string>()).Return(valueAdapter);
         }
 
