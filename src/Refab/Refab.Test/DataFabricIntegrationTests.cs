@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Text;
 using NUnit.Framework;
 using Rhino.Mocks;
+using Rhino.Mocks.Constraints;
 using StackExchange.Redis;
 
 namespace Refab.Test
@@ -22,7 +23,8 @@ namespace Refab.Test
             _redis = ConnectionMultiplexer.Connect("localhost");
             _keyProvider = MockRepository.Mock<IAdapterProvider<RedisKey>>();
             var keyAdapter = MockRepository.Mock<IAdapter<string, RedisKey>>();
-            keyAdapter.Stub(m => m.Adapt(string.Empty)).IgnoreArguments().Repeat.Any().DoInstead((Func<string,RedisKey>)(s => s));
+            keyAdapter.Stub(m => m.Adapt(Arg<string>.Is.Anything)).Repeat.Any().DoInstead((Func<string, RedisKey>)(s => s));
+            keyAdapter.Stub(m => m.Adapt(Arg<RedisKey>.Is.Anything)).Repeat.Any().DoInstead((Func<RedisKey, string>)(s => s));
             _keyProvider.Stub(m => m.Provide<string>()).Return(keyAdapter);
             _valueProvider = MockRepository.Mock<IAdapterProvider<RedisValue>>();
             var valueAdapter = MockRepository.Mock<IAdapter<string, RedisValue>>();
@@ -58,6 +60,17 @@ namespace Refab.Test
             var o = fabric.Observe<string, string>(k);
             var s = o.FirstOrDefault();
             StringAssert.AreEqualIgnoringCase(string.Empty, s);
+        }
+
+        [Test]
+        public void ShouldFindKeys()
+        {
+            var keys = Enumerable.Range(0, 10).Select(i => "test-datafabric-find-" + i);
+            var fabric = new DataFabric(_redis, _keyProvider, _valueProvider);
+            // prepare default keys
+            keys.ToList().ForEach(k => fabric.Put(k, string.Empty));
+            var found = fabric.Search("test-datafabric-find-*").ToList();
+            Assert.AreEqual(10, found.Count());
         }
     }
 }

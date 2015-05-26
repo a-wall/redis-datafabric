@@ -46,11 +46,11 @@ namespace Refab
             });
         }
 
-        public static IEnumerable<string> GetKeys(this ConnectionMultiplexer connectionMultiplexer, string pattern)
+        public static IEnumerable<RedisKey> GetKeys(this ConnectionMultiplexer connectionMultiplexer, RedisKey key)
         {
+            string pattern = key;
             var svrs = connectionMultiplexer.GetEndPoints();
-            var keys = svrs.Select(ep => connectionMultiplexer.GetServer(ep)).Where(s => s.IsConnected && !s.IsSlave).SelectMany(s => s.Keys(pattern: pattern)).Select(k => k.ToString()).ToList();
-            return keys;
+            return svrs.Select(ep => connectionMultiplexer.GetServer(ep)).Where(s => s.IsConnected && !s.IsSlave).SelectMany(s => s.Keys(pattern: pattern));
         }
     }
 }

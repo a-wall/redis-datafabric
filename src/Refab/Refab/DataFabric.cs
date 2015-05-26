@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using StackExchange.Redis;
 
@@ -9,6 +11,7 @@ namespace Refab
         IObservable<TValue> Observe<TValue, TKey>(TKey key);
         TValue Get<TValue, TKey>(TKey key);
         void Put<TValue, TKey>(TKey key, TValue value);
+        IEnumerable<TKey> Search<TKey>(TKey key);
     }
 
     public class DataFabric : IDataFabric
@@ -53,5 +56,12 @@ namespace Refab
             observer.OnNext(valueAdapter.Adapt(value));
         }
 
+        public IEnumerable<TKey> Search<TKey>(TKey key)
+        {
+            var keyAdapter = _keyAdapterProvider.Provide<TKey>();
+            var rkey = keyAdapter.Adapt(key);
+            var keys = _connectionMultiplexer.GetKeys(rkey);
+            return keys.Select(k => keyAdapter.Adapt(k));
+        }
     }
 }
